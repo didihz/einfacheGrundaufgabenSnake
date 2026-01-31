@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 Mathe-Quiz mit Snake-Belohnung</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* Quiz Bereich */
+        .quiz-section {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .stat-box .number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stat-box .label {
+            font-size: 0.9rem;
+        }
+
+        .question-box {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .question-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .question {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .answer-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .answer-input {
+            font-size: 2rem;
+            padding: 15px 25px;
+            width: 150px;
+            text-align: center;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .answer-input:focus {
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            font-size: 1.3rem;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .feedback.wrong {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        /* Snake Bereich */
+        .snake-section {
+            background: #1a1a2e;
+            border-radius: 25px;
+            padding: 20px;
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .snake-section.active {
+            display: flex;
+        }
+
+        .snake-header {
+            color: #4ade80;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .snake-score {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .snake-score span {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            border: 3px solid #4ade80;
+            border-radius: 10px;
+            background: #0f0f23;
+        }
+
+        .snake-controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .control-btn {
+            width: 55px;
+            height: 55px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #4ade80, #22c55e);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+
+        .back-btn {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .game-over-msg {
+            color: #ef4444;
+            font-size: 1.3rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Celebration */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .trophy {
+            font-size: 3rem;
+            animation: bounce 0.5s ease infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🧮 Mathe-Quiz für die 3. Klasse 🐍</h1>
+
+    <div class="container">
+        <!-- Quiz Bereich -->
+        <div class="quiz-section" id="quizSection">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="number" id="correctCount">0</div>
+                    <div class="label">✅ Richtig</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number" id="questionNum">1</div>
+                    <div class="label">📝 Frage</div>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <div class="question-label">Wie viel ist...</div>
+                <div class="question" id="question">5 + 3 = ?</div>
+            </div>
+
+            <div class="answer-section">
+                <input type="number" class="answer-input" id="answerInput" placeholder="?" autofocus>
+                <button class="submit-btn" id="submitBtn">✓</button>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <!-- Snake Bereich -->
+        <div class="snake-section" id="snakeSection">
+            <div class="snake-header">
+                <span class="trophy">🏆</span> Super! Jetzt darfst du Snake spielen!
+            </div>
+            <div class="snake-score">Punkte: <span id="snakeScore">0</span></div>
+            
+            <canvas id="gameCanvas" width="300" height="300"></canvas>
+
+            <div class="snake-controls">
+                <div class="control-row">
+                    <button class="control-btn" id="upBtn">⬆️</button>
+                </div>
+                <div class="control-row">
+                    <button class="control-btn" id="leftBtn">⬅️</button>
+                    <button class="control-btn" id="downBtn">⬇️</button>
+                    <button class="control-btn" id="rightBtn">➡️</button>
+                </div>
+            </div>
+
+            <div class="game-over-msg" id="gameOverMsg">
+                💥 Spiel vorbei! Du hattest <span id="finalSnakeScore">0</span> Punkte!
+            </div>
+
+            <button class="back-btn" id="backBtn">📚 Nächste Mathe-Frage</button>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        // ===== QUIZ LOGIK =====
+        const quizSection = document.getElementById('quizSection');
+        const snakeSection = document.getElementById('snakeSection');
+        const questionEl = document.getElementById('question');
+        const answerInput = document.getElementById('answerInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const feedbackEl = document.getElementById('feedback');
+        const correctCountEl = document.getElementById('correctCount');
+        const questionNumEl = document.getElementById('questionNum');
+        const celebrationEl = document.getElementById('celebration');
+
+        let correctAnswer = 0;
+        let correctCount = 0;
+        let questionNum = 1;
+
+        // Frage-Typen für 3. Klasse
+        function generateQuestion() {
+            const types = [
+                'addition',
+                'subtraction',
+                'multiplication',
+                'easyDivision'
+            ];
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            let a, b, question, answer;
+
+            switch(type) {
+                case 'addition':
+                    a = Math.floor(Math.random() * 50) + 10;
+                    b = Math.floor(Math.random() * 50) + 10;
+                    question = `${a} + ${b} = ?`;
+                    answer = a + b;
+                    break;
+                case 'subtraction':
+                    a = Math.floor(Math.random() * 50) + 30;
+                    b = Math.floor(Math.random() * 30) + 1;
+                    question = `${a} - ${b} = ?`;
+                    answer = a - b;
+                    break;
+                case 'multiplication':
+                    a = Math.floor(Math.random() * 10) + 1;
+                    b = Math.floor(Math.random() * 10) + 1;
+                    question = `${a} × ${b} = ?`;
+                    answer = a * b;
+                    break;
+                case 'easyDivision':
+                    b = Math.floor(Math.random() * 9) + 2;
+                    answer = Math.floor(Math.random() * 10) + 1;
+                    a = b * answer;
+                    question = `${a} ÷ ${b} = ?`;
+                    break;
+            }
+
+            return { question, answer };
+        }
+
+        function newQuestion() {
+            const q = generateQuestion();
+            questionEl.textContent = q.question;
+            correctAnswer = q.answer;
+            answerInput.value = '';
+            feedbackEl.className = 'feedback';
+            feedbackEl.style.display = 'none';
+            answerInput.focus();
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                feedbackEl.textContent = '❓ Bitte gib eine Zahl ein!';
+                feedbackEl.className = 'feedback wrong';
+                return;
+            }
+
+            if (userAnswer === correctAnswer) {
+                correctCount++;
+                correctCountEl.textContent = correctCount;
+                feedbackEl.innerHTML = '🎉 Super! Das ist richtig! <br>Du darfst jetzt Snake spielen!';
+                feedbackEl.className = 'feedback correct';
+                celebrate();
+                
+                // Nach 2 Sekunden zu Snake wechseln
+                setTimeout(() => {
+                    showSnake();
+                }, 2000);
+            } else {
+                feedbackEl.textContent = `❌ Leider falsch. Die richtige Antwort ist ${correctAnswer}. Versuche die nächste Aufgabe!`;
+                feedbackEl.className = 'feedback wrong';
+                
+                // Nächste Frage nach 2 Sekunden
+                setTimeout(() => {
+                    questionNum++;
+                    questionNumEl.textContent = questionNum;
+                    newQuestion();
+                }, 2500);
+            }
+        }
+
+        function celebrate() {
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#4ade80'];
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-20px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                celebrationEl.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        submitBtn.addEventListener('click', checkAnswer);
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // ===== SNAKE LOGIK =====
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const snakeScoreEl = document.getElementById('snakeScore');
+        const gameOverMsgEl = document.getElementById('gameOverMsg');
+        const finalSnakeScoreEl = document.getElementById('finalSnakeScore');
+        const backBtn = document.getElementById('backBtn');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [];
+        let food = {};
+        let direction = { x: 0, y: 0 };
+        let nextDirection = { x: 0, y: 0 };
+        let snakeScore = 0;
+        let gameRunning = false;
+        let gameLoop;
+
+        // LANGSAME GESCHWINDIGKEIT: 250ms (viel langsamer!)
+        const GAME_SPEED = 250;
+
+        function initSnake() {
+            snake = [
+                { x: 7, y: 7 },
+                { x: 6, y: 7 },
+                { x: 5, y: 7 }
+            ];
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            snakeScore = 0;
+            snakeScoreEl.textContent = snakeScore;
+            gameOverMsgEl.style.display = 'none';
+            spawnFood();
+        }
+
+        function spawnFood() {
+            do {
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            } while (snake.some(s => s.x === food.x && s.y === food.y));
+        }
+
+        function updateSnake() {
+            direction = { ...nextDirection };
+            
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // Wand-Kollision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endSnakeGame();
+                return;
+            }
+
+            // Selbst-Kollision
+            if (snake.some(s => s.x === head.x && s.y === head.y)) {
+                endSnakeGame();
+                return;
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                snakeScore += 10;
+                snakeScoreEl.textContent = snakeScore;
+                spawnFood();
+                celebrate();
+            } else {
+                snake.pop();
+            }
+
+            drawSnake();
+        }
+
+        function drawSnake() {
+            // Hintergrund
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Gitter
+            ctx.strokeStyle = 'rgba(74, 222, 128, 0.1)';
+            for (let i = 0; i <= tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // Schlange
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    ctx.fillStyle = '#86efac';
+                } else {
+                    const alpha = 1 - (index / snake.length) * 0.5;
+                    ctx.fillStyle = `rgba(74, 222, 128, ${alpha})`;
+                }
+
+                ctx.beginPath();
+                ctx.roundRect(
+                    segment.x * gridSize + 2,
+                    segment.y * gridSize + 2,
+                    gridSize - 4,
+                    gridSize - 4,
+                    5
+                );
+                ctx.fill();
+
+                // Augen
+                if (index === 0) {
+                    ctx.fillStyle = 'white';
+                    const cx = segment.x * gridSize + gridSize / 2;
+                    const cy = segment.y * gridSize + gridSize / 2;
+                    ctx.beginPath();
+                    ctx.arc(cx - 4, cy - 2, 3, 0, Math.PI * 2);
+                    ctx.arc(cx + 4, cy - 2, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Essen
+            ctx.font = `${gridSize - 4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🍎', food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2);
+        }
+
+        function endSnakeGame() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            finalSnakeScoreEl.textContent = snakeScore;
+            gameOverMsgEl.style.display = 'block';
+        }
+
+        function showSnake() {
+            quizSection.style.display = 'none';
+            snakeSection.classList.add('active');
+            initSnake();
+            drawSnake();
+            gameRunning = true;
+            gameLoop = setInterval(updateSnake, GAME_SPEED);
+        }
+
+        function showQuiz() {
+            snakeSection.classList.remove('active');
+            quizSection.style.display = 'block';
+            gameRunning = false;
+            clearInterval(gameLoop);
+            questionNum++;
+            questionNumEl.textContent = questionNum;
+            newQuestion();
+        }
+
+        backBtn.addEventListener('click', showQuiz);
+
+        // Tastatur-Steuerung
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
+                    break;
+            }
+        });
+
+        // Touch-Buttons
+        document.getElementById('upBtn').addEventListener('click', () => {
+            if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
+        });
+        document.getElementById('downBtn').addEventListener('click', () => {
+            if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
+        });
+        document.getElementById('leftBtn').addEventListener('click', () => {
+            if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
+        });
+        document.getElementById('rightBtn').addEventListener('click', () => {
+            if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
+        });
+
+        // Start
+        newQuestion();
+    </script>
+</body>
+</html>
